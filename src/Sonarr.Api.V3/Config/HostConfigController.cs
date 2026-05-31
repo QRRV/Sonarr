@@ -134,19 +134,12 @@ namespace Sonarr.Api.V3.Config
 
         private bool IsMatchingPassword(HostConfigResource resource)
         {
-            var user = _userService.FindUser();
-
-            if (user != null && user.Password == resource.Password)
+            if (resource.Password == PrivateValue)
             {
                 return true;
             }
 
-            if (resource.Password == resource.PasswordConfirmation)
-            {
-                return true;
-            }
-
-            return false;
+            return resource.Password == resource.PasswordConfirmation;
         }
 
         protected override HostConfigResource GetResourceById(int id)
@@ -163,7 +156,7 @@ namespace Sonarr.Api.V3.Config
 
             resource.Id = 1;
             resource.Username = user?.Username ?? string.Empty;
-            resource.Password = user?.Password ?? string.Empty;
+            resource.Password = user?.Password.IsNotNullOrWhiteSpace() == true ? PrivateValue : string.Empty;
             resource.PasswordConfirmation = string.Empty;
 
             // Prevent the OIDC client secret from being exposed
@@ -192,9 +185,17 @@ namespace Sonarr.Api.V3.Config
             _configFileProvider.SaveConfigDictionary(dictionary);
             _configService.SaveConfigDictionary(dictionary);
 
-            if (resource.Username.IsNotNullOrWhiteSpace() && resource.Password.IsNotNullOrWhiteSpace())
+            if (resource.Username.IsNotNullOrWhiteSpace() &&
+                resource.Password.IsNotNullOrWhiteSpace())
             {
-                _userService.Upsert(resource.Username, resource.Password);
+                var password = resource.Password == PrivateValue
+                    ? _userService.FindUser()?.Password
+                    : resource.Password;
+
+                if (password.IsNotNullOrWhiteSpace())
+                {
+                    _userService.Upsert(resource.Username, password);
+                }
             }
 
             return Accepted(resource.Id);

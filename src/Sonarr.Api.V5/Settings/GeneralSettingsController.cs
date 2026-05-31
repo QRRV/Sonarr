@@ -127,19 +127,12 @@ public class GeneralSettingsController : SettingsController<GeneralSettingsResou
 
     private bool IsMatchingPassword(GeneralSettingsResource resource)
     {
-        var user = _userService.FindUser();
-
-        if (user != null && user.Password == resource.Password)
+        if (resource.Password == PrivateValue)
         {
             return true;
         }
 
-        if (resource.Password == resource.PasswordConfirmation)
-        {
-            return true;
-        }
-
-        return false;
+        return resource.Password == resource.PasswordConfirmation;
     }
 
     protected override GeneralSettingsResource ToResource(IConfigFileProvider configFile, IConfigService model)
@@ -149,7 +142,7 @@ public class GeneralSettingsController : SettingsController<GeneralSettingsResou
         var user = _userService.FindUser();
 
         resource.Username = user?.Username ?? string.Empty;
-        resource.Password = user?.Password ?? string.Empty;
+        resource.Password = user?.Password.IsNotNullOrWhiteSpace() == true ? PrivateValue : string.Empty;
         resource.PasswordConfirmation = string.Empty;
 
         // Prevent the OIDC client secret from being exposed
@@ -164,7 +157,14 @@ public class GeneralSettingsController : SettingsController<GeneralSettingsResou
 
         if (resource.Username.IsNotNullOrWhiteSpace() && resource.Password.IsNotNullOrWhiteSpace())
         {
-            _userService.Upsert(resource.Username, resource.Password);
+            var password = resource.Password == PrivateValue
+                ? _userService.FindUser()?.Password
+                : resource.Password;
+
+            if (password.IsNotNullOrWhiteSpace())
+            {
+                _userService.Upsert(resource.Username, password);
+            }
         }
 
         // Don't persist the OIDC client secret placeholder
