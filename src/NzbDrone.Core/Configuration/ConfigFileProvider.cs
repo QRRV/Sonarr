@@ -95,6 +95,7 @@ namespace NzbDrone.Core.Configuration
         private readonly LogOptions _logOptions;
 
         private readonly string _configFile;
+        private readonly string _uiFolder;
         private static readonly Regex HiddenCharacterRegex = new Regex("[^a-z0-9]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly object Mutex = new object();
@@ -114,6 +115,9 @@ namespace NzbDrone.Core.Configuration
             _eventAggregator = eventAggregator;
             _diskProvider = diskProvider;
             _configFile = appFolderInfo.GetConfigPath();
+            _uiFolder = BuildInfo.IsDebug
+                ? Path.GetFullPath(Path.Combine(appFolderInfo.StartUpFolder, "..", "UI"))
+                : Path.Combine(appFolderInfo.StartUpFolder, "UI");
             _postgresOptions = postgresOptions.Value;
             _authOptions = authOptions.Value;
             _appOptions = appOptions.Value;
@@ -306,7 +310,7 @@ namespace NzbDrone.Core.Configuration
 
         public string TrustedNetworks => _serverOptions.TrustedNetworks ?? GetValue("TrustedNetworks", string.Empty);
 
-        public string UiFolder => BuildInfo.IsDebug ? Path.Combine("..", "UI") : "UI";
+        public string UiFolder => _uiFolder;
 
         public string InstanceName
         {
