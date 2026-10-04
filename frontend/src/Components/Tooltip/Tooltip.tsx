@@ -9,6 +9,7 @@ import {
   Placement,
   safePolygon,
   shift,
+  size,
   useClick,
   useDismiss,
   useFloating,
@@ -24,6 +25,8 @@ import { kinds } from 'Helpers/Props';
 import { Kind } from 'Helpers/Props/kinds';
 import { isMobile } from 'Utilities/browser';
 import styles from './Tooltip.module.css';
+
+const VIEWPORT_PADDING = 10;
 
 export interface TooltipProps {
   accessibleLabel?: string;
@@ -63,15 +66,22 @@ function Tooltip(props: TooltipProps) {
 
   const { refs, context, floatingStyles } = useFloating({
     middleware: [
+      offset({ mainAxis: 10 }),
+      flip({
+        crossAxis: canFlip ? 'alignment' : false,
+        mainAxis: canFlip,
+        fallbackAxisSideDirection: 'start',
+      }),
+      shift({ padding: VIEWPORT_PADDING }),
+      size({
+        padding: VIEWPORT_PADDING,
+        apply({ availableWidth, elements }) {
+          elements.floating.style.maxWidth = `${Math.max(0, availableWidth)}px`;
+        },
+      }),
       arrow({
         element: arrowRef,
       }),
-      flip({
-        crossAxis: canFlip,
-        mainAxis: canFlip,
-      }),
-      offset({ mainAxis: 10 }),
-      shift(),
     ],
     open: isOpen,
     placement: position,
