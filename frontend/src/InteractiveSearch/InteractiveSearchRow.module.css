@@ -51,19 +51,19 @@
 }
 
 .quality {
-  width: 100px;
+  width: 170px;
   white-space: nowrap;
 }
 
 .languages {
-  width: 100px;
+  width: 140px;
 }
 
 .customFormatScore {
   composes: cell from 'Components/Table/Cells/TableRowCell.module.css';
 
   flex: 0 0 auto;
-  width: 55px;
+  width: 70px;
   font-weight: bold;
   cursor: default;
 }
