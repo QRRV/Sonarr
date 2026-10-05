@@ -75,8 +75,11 @@ function Tooltip(props: TooltipProps) {
       shift({ padding: VIEWPORT_PADDING }),
       size({
         padding: VIEWPORT_PADDING,
-        apply({ availableWidth, elements }) {
-          elements.floating.style.maxWidth = `${Math.max(0, availableWidth)}px`;
+        apply({ availableWidth, availableHeight, elements }) {
+          Object.assign(elements.floating.style, {
+            maxWidth: `${Math.max(0, availableWidth)}px`,
+            maxHeight: `${Math.max(0, availableHeight)}px`,
+          });
         },
       }),
       arrow({
